@@ -11,7 +11,7 @@
     <version>3.0.1-docker</version>
   </parent>
   <description>Sentinel-1 burned area identification</description>
-  <version>0.2-SNAPSHOT</version>
+  <version>0.1</version>
   <properties>
     <summary>Sentinel-1 burned area identification</summary>
     <description>Sentinel-1 burned area identification</description>
