@@ -11,6 +11,7 @@ from nbconvert.preprocessors import ExecutePreprocessor, CellExecutionError
 import nbformat as nbf
 import uuid
 import ast
+import re
 
 sys.path.append('/opt/anaconda/bin/')
 import cioppy
@@ -158,14 +159,18 @@ def execute(nb_source, nb_target, kernel = 'python2'):
     
     try:
         out = ep.preprocess(nb, {'metadata': {'path': './'}})
-    except CellExecutionError:
+    except CellExecutionError as e:
+        match = re.search("ValueError: ([^\\n]+)", str(e))
+        if match:
+            ciop.log('INFO', '%s [notebook execution error]' % match.groups(1))
+        else:
+            
+            ciop.log('ERROR', 'Error executing the notebook "%s".' % nb_source)
         out = None
-        ciop.log('ERROR', 'Error executing the notebook "%s".' % nb_source)
-
         with io.open(nb_target, 'wb') as file:
             file.write(nbf.writes(nb))
             file.close()
-      
+
         ciop.publish(nb_target, metalink=True)
         raise
     finally:
@@ -189,7 +194,8 @@ def clean_up():
 def main():
 
     global runtime
-    runtime = os.path.join(ciop.tmp_dir, str(uuid.uuid4()))    
+    #runtime = os.path.join(ciop.tmp_dir, str(uuid.uuid4()))    
+    runtime = os.path.join('/workspace/tmp', str(uuid.uuid4()))    
 
     ciop.log('DEBUG', 'The runtime folder is %s' % (runtime))
     os.makedirs(runtime)
@@ -197,7 +203,22 @@ def main():
     
     # create the folder for the data stage-in
     global tmp_dir
-    tmp_dir = os.path.join('/tmp', 'workspace-' + str(uuid.uuid4()), 'data') 
+    
+    try:
+        for d in [x for x in os.listdir('/workspace/tmp') if 'workspace' in x]:
+            ciop.log('DEBUG','Removing /workspace/tmp/{}'.format(d))
+            shutil.rmtree('/workspace/tmp/{}'.format(d))
+    except:
+        pass
+    
+    try:
+        for d in [x for x in os.listdir('/tmp') if 'workspace' in x]:
+            ciop.log('DEBUG','Removing /tmp/{}'.format(d))
+            shutil.rmtree('/tmp/{}'.format(d))
+    except:
+        pass
+    
+    tmp_dir = os.path.join('/workspace/tmp', 'workspace-' + str(uuid.uuid4()), 'data') 
     os.makedirs(tmp_dir)
   
     # Loops over all the inputs

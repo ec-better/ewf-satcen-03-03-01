@@ -1,0 +1,21 @@
+<application xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" id="application">
+  <jobTemplates>
+    <jobTemplate id="notebook">
+      <streamingExecutable>/application/notebook/run</streamingExecutable>
+      <defaultParameters><parameter id="polarization" title="Polarization" abstract="Polarization" maxOccurs="1" scope="runtime" type="LiteralData">VV</parameter><parameter id="aoi" title="Area of interest" abstract="Area of interest" maxOccurs="1" scope="runtime" type="LiteralData">POLYGON ((149.1733316344 -34.3218325277, 150.3652377054 -34.2948655567, 150.4056772124 -35.2832818792, 149.1994838956 -35.3112545059, 149.1733316344 -34.3218325277))</parameter><parameter id="epsg" title="EPSG code" abstract="EPSG code (example: EPSG:32632)" maxOccurs="1" scope="runtime" type="LiteralData">EPSG:32755</parameter><parameter id="resolution" title="Resolution in meters (5.0 or 10.0)" abstract="Resolution in meters (5.0 or 10.0)" maxOccurs="1" scope="runtime" type="LiteralData">10.0</parameter><parameter id="orbit_type" title="Orbit type, Restituted or Precise" abstract="Orbit type, Restituted or Precise" maxOccurs="1" scope="runtime" type="LiteralData">Precise</parameter></defaultParameters>
+     <defaultJobconf>
+        <property id="mapred.task.timeout">9900000000000</property>
+        <property id="ciop.job.max.tasks">1</property> 
+     </defaultJobconf>
+    </jobTemplate>
+  </jobTemplates>
+  <workflow id="ewf-satcen-03-03-01" title="Sentinel-1 burned area identification" abstract="Sentinel-1 burned area identification">
+    <workflowVersion>1.0</workflowVersion>
+    <node id="notebook">
+      <job id="notebook"/>
+      <sources>
+        <source id="source" title="Input references" abstract="Input references" refid="string:list" scope="runtime">https://catalog.terradue.com/sentinel1/search?format=json&amp;uid=S1A_IW_GRDH_1SDV_20191025T191551_20191025T191616_029619_035F6B_CC56,https://catalog.terradue.com/sentinel1/search?format=json&amp;uid=S1A_IW_GRDH_1SDV_20191212T191551_20191212T191616_030319_0377C8_5456</source>
+      </sources>
+    </node>
+  </workflow>
+</application>

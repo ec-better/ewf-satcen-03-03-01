@@ -11,7 +11,6 @@ import osr
 import ogr
 from shapely.geometry import box
 from shapely.wkt import loads
-import json
 import sys
 
 sys.path.append('/opt/OTB/lib/python')
@@ -76,9 +75,9 @@ def bbox_to_wkt(bbox):
     return box(*[float(c) for c in bbox.split(',')]).wkt
 
 
-def polygon_to_box(polygon):
+def get_inteserction_aoi_prod(aoi,prod_wkt):
     
-    return box(*[float(c) for c in loads(polygon).bounds]).wkt
+    return loads(prod_wkt).intersection(loads(aoi)).wkt
 
 
 def pre_process(products, aoi, utm_zone, resolution='10.0', polarization=None, orbit_type=None, show_graph=False):
@@ -87,6 +86,7 @@ def pre_process(products, aoi, utm_zone, resolution='10.0', polarization=None, o
     
     for index, product in products.iterrows():
 
+        #aoi_subset = get_inteserction_aoi_prod(aoi,products['wkt'][index])
         mygraph = GraphProcessor()
         
         operator = 'Read'
@@ -172,7 +172,7 @@ def pre_process(products, aoi, utm_zone, resolution='10.0', polarization=None, o
         parameters['mapProjection'] = map_proj
         parameters['pixelSpacingInMeter'] = resolution            
         parameters['nodataValueAtSea'] = 'false'
-        parameters['demName'] = 'SRTM 3Sec'
+        parameters['demName'] = 'SRTM 1Sec HGT'
         
         mygraph.add_node(node_id,
                          operator,
@@ -415,43 +415,6 @@ def get_image_wkt(product):
                      transform.TransformPoint(max_x, max_y)[1]).wkt
     
     return result_wkt
-
-
-def polygonize(input_tif, band, epsg):
-    
-    epsg_code = epsg.split(':')[1]
-    
-    srs = osr.SpatialReference()
-    srs.ImportFromEPSG(int(epsg_code))
-
-    source_raster = gdal.Open(input_tif)
-    band = source_raster.GetRasterBand(band)
-    band_array = band.ReadAsArray()
-
-    out_vector_file = "polygonized.json"
-
-    driver = ogr.GetDriverByName('GeoJSON')
-
-    out_data_source = driver.CreateDataSource(out_vector_file+ "")
-    out_layer = out_data_source.CreateLayer(out_vector_file, srs=srs)
-
-    new_field = ogr.FieldDefn('change_detection', ogr.OFTInteger)
-    out_layer.CreateField(new_field)
-
-    gdal.Polygonize(band, None, out_layer, 0, [], callback=None )
-
-    out_data_source = None
-    source_raster = None
-
-    data = json.loads(open(out_vector_file).read())
-    gdf = gp.GeoDataFrame.from_features(data['features'])
-
-    gdf.crs = {'init':'epsg:{}'.format(epsg_code)}
-    gdf = gdf.to_crs(epsg=epsg_code)
-    
-    os.remove(out_vector_file)
-    
-    return gdf
 
 
 def create_composite(input_products, output_product, band_expressions):
