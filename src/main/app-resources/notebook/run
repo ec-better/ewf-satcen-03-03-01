@@ -92,7 +92,7 @@ def parametrize():
     
                         cell['source'] = '%s = %s' % (names[1], new_source)
          
-                        ciop.log('INFO', 'cell %s %s updated with %s' % (index, names[1],new_sources))
+                        ciop.log('INFO', 'cell %s %s updated' % (index, names[1]))
                     
             except SyntaxError:
                 continue   
