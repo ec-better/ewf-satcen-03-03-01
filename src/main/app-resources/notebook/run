@@ -194,8 +194,20 @@ def clean_up():
 def main():
 
     global runtime
-    #runtime = os.path.join(ciop.tmp_dir, str(uuid.uuid4()))    
-    runtime = os.path.join('/workspace/tmp', str(uuid.uuid4()))    
+    
+    
+    # SB testing purpose
+    #try:
+    #    for d in [x for x in os.listdir('/workspace/tmp')]:# if 'workspace' in x]:
+    #        ciop.log('DEBUG','Removing /workspace/tmp/{}'.format(d))
+    #        shutil.rmtree('/workspace/tmp/{}'.format(d))
+    #except:
+    #    pass
+    
+    runtime = os.path.join(ciop.tmp_dir, str(uuid.uuid4())) 
+    
+    # SB testing purpose
+    #runtime = os.path.join('/workspace/tmp', str(uuid.uuid4()))    
 
     ciop.log('DEBUG', 'The runtime folder is %s' % (runtime))
     os.makedirs(runtime)
@@ -204,21 +216,19 @@ def main():
     # create the folder for the data stage-in
     global tmp_dir
     
-    try:
-        for d in [x for x in os.listdir('/workspace/tmp') if 'workspace' in x]:
-            ciop.log('DEBUG','Removing /workspace/tmp/{}'.format(d))
-            shutil.rmtree('/workspace/tmp/{}'.format(d))
-    except:
-        pass
     
-    try:
-        for d in [x for x in os.listdir('/tmp') if 'workspace' in x]:
-            ciop.log('DEBUG','Removing /tmp/{}'.format(d))
-            shutil.rmtree('/tmp/{}'.format(d))
-    except:
-        pass
+    # SB testing purpose
+    #try:
+    #    for d in [x for x in os.listdir('/tmp') if 'workspace' in x]:
+    #        ciop.log('DEBUG','Removing /tmp/{}'.format(d))
+    #        shutil.rmtree('/tmp/{}'.format(d))
+    #except:
+    #    pass
     
-    tmp_dir = os.path.join('/workspace/tmp', 'workspace-' + str(uuid.uuid4()), 'data') 
+    # SB testing purpose
+    #tmp_dir = os.path.join('/workspace/tmp', 'workspace-' + str(uuid.uuid4()), 'data')
+    
+    tmp_dir = os.path.join('/tmp', 'workspace-' + str(uuid.uuid4()), 'data') 
     os.makedirs(tmp_dir)
   
     # Loops over all the inputs
@@ -253,7 +263,7 @@ def main():
     
         # clean-up
         clean_up()
-     
+
 try:
     main()
 except SystemExit as e:
