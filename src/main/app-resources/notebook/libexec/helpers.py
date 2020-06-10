@@ -20,6 +20,9 @@ os.environ['OTB_APPLICATION_PATH'] = '/opt/OTB/lib/otb/applications'
 os.environ['LD_LIBRARY_PATH'] = '/opt/OTB/lib'
 os.environ['ITK_AUTOLOAD_PATH'] = '/opt/OTB/lib/otb/applications'
 
+os.environ['_JAVA_OPTIONS'] = '-Xms24g -Xmx24g'
+
+
 import otbApplication
 from gdal_calc import Calc as gdalCalc
 
@@ -80,7 +83,146 @@ def get_inteserction_aoi_prod(aoi,prod_wkt):
     return loads(prod_wkt).intersection(loads(aoi)).wkt
 
 
-def pre_process(products, aoi, utm_zone, resolution='10.0', polarization=None, orbit_type=None, show_graph=False):
+def pre_process(products, aoi, resolution='10.0', polarization=None, orbit_type=None, show_graph=False):
+
+    #mygraph = GraphProcessor()
+    
+    for index, product in products.iterrows():
+
+        #aoi_subset = get_inteserction_aoi_prod(aoi,products['wkt'][index])
+        mygraph = GraphProcessor()
+        
+        operator = 'Read'
+        parameters = get_operator_default_parameters(operator)
+        node_id = 'Read-{0}'.format(index)
+        source_node_id = ''
+        parameters['file'] = product.local_path 
+        mygraph.add_node(node_id,
+                         operator, 
+                         parameters,
+                         source_node_id)
+
+        source_node_id = node_id
+
+        operator = 'Subset'
+        
+        node_id = 'Subset-{0}'.format(index)
+        
+        parameters = get_operator_default_parameters(operator)
+        parameters['geoRegion'] = aoi
+        parameters['copyMetadata'] = 'true'
+
+
+        mygraph.add_node(node_id,
+                         operator,
+                         parameters,
+                         source_node_id)
+
+        source_node_id = node_id
+        
+        
+        operator = 'Apply-Orbit-File'
+
+        parameters = get_operator_default_parameters(operator)
+        
+        if orbit_type == 'Restituted':
+        
+            parameters['orbitType'] = 'Sentinel Restituted (Auto Download)'
+            
+
+        node_id = 'Apply-Orbit-File-{0}'.format(index)
+        mygraph.add_node(node_id, 
+                         operator, 
+                         parameters, 
+                         source_node_id)
+
+        source_node_id = node_id
+
+        operator = 'ThermalNoiseRemoval'
+        node_id = 'ThermalNoiseRemoval-{0}'.format(index)
+        parameters = get_operator_default_parameters(operator)
+        
+        if polarization is not None:
+            parameters['selectedPolarisations'] = polarization
+            
+        mygraph.add_node(node_id,
+                         operator,
+                         parameters,
+                         source_node_id)
+
+        source_node_id = node_id
+
+        operator = 'Calibration'
+        node_id = 'Calibration-{0}'.format(index)
+        parameters = get_operator_default_parameters(operator)
+
+        parameters['auxFile'] = 'Product Auxiliary File'
+        parameters['outputImageInComplex'] = 'false'
+        parameters['outputImageScaleInDb'] = 'false'
+        parameters['createGammaBand'] = 'false'
+        parameters['createBetaBand'] = 'false'
+        parameters['selectedPolarisations'] = ''
+        parameters['outputSigmaBand'] = 'true'
+        parameters['outputGammaBand'] = 'false'
+        parameters['outputBetaBand'] = 'false'
+        
+        if polarization is not None:
+            
+            parameters['selectedPolarisations'] = polarization
+        
+        mygraph.add_node(node_id,
+                         operator,
+                         parameters,
+                         source_node_id)
+
+        source_node_id = node_id
+
+        operator = 'Terrain-Correction'
+    
+        node_id = 'Terrain-Correction-{0}'.format(index)
+    
+        parameters = get_operator_default_parameters(operator)
+
+        #map_proj = utm_zone
+
+        parameters['mapProjection'] = 'AUTO:42001'
+        parameters['pixelSpacingInMeter'] = resolution           
+        parameters['nodataValueAtSea'] = 'true'
+        #parameters['demName'] = 'SRTM 1Sec HGT'
+        parameters['demName'] = 'SRTM 3Sec'
+        
+        
+        mygraph.add_node(node_id,
+                         operator,
+                         parameters,
+                         source_node_id)
+
+        source_node_id = node_id
+
+        
+        operator = 'Write'
+
+        parameters = get_operator_default_parameters(operator)
+
+        parameters['file'] = product.identifier 
+        parameters['formatName'] = 'BEAM-DIMAP'
+
+        node_id = 'Write-{0}'.format(index)
+
+        mygraph.add_node(node_id,
+                         operator,
+                         parameters,
+                         source_node_id)
+       
+        if show_graph: 
+            mygraph.view_graph()
+        
+        mygraph.run()
+
+
+
+
+def deprecated_pre_process(products, aoi, utm_zone, resolution='10.0', polarization=None, orbit_type=None, show_graph=False):
 
     #mygraph = GraphProcessor()
     
@@ -200,7 +342,108 @@ def pre_process(products, aoi, utm_zone, resolution='10.0', polarization=None, o
             mygraph.view_graph()
         
         mygraph.run()
-        
+
+
+def speckle_filter(products, show_graph=True):
+    
+    mygraph = GraphProcessor()
+    
+    operator = 'Read'
+    parameters = get_operator_default_parameters(operator)
+    node_id_0 = 'Read-0'
+    source_node_id = ''
+    parameters['file'] = '{}.dim'.format(products.identifier.values[0])
+    mygraph.add_node(node_id_0,
+                     operator, 
+                     parameters,
+                     source_node_id)
+
+    
+    
+    operator = 'Read'
+    parameters = get_operator_default_parameters(operator)
+    node_id_1 = 'Read-1'
+    source_node_id = ''
+    parameters['file'] = '{}.dim'.format(products.identifier.values[1])
+    mygraph.add_node(node_id_1,
+                     operator, 
+                     parameters,
+                     source_node_id)
+    
+    
+    
+    sources = dict()
+    sources['master'] = node_id_0
+    sources['slave'] = node_id_1
+    
+    operator = 'Collocate'
+      
+    parameters = get_operator_default_parameters(operator)
+    
+    node_id = 'Collocate'
+
+    parameters['targetProductName'] = '_collocated'
+    parameters['targetProductType'] = 'COLLOCATED'
+    parameters['renameMasterComponents'] = 'true'
+    parameters['renameSlaveComponents'] = 'true'
+    parameters['masterComponentPattern']='before'
+    parameters['slaveComponentPattern'] = 'after'
+    parameters['resamplingType'] = 'NEAREST_NEIGHBOUR'
+    
+    
+    mygraph.add_node(node_id,
+                     operator, 
+                     parameters,
+                     sources)
+
+    source_node_id = node_id
+    
+    operator = 'Multi-Temporal-Speckle-Filter'
+
+    parameters = get_operator_default_parameters(operator)
+    
+    node_id = 'Multi-Temporal-Speckle-Filter'
+
+    parameters['sourceBands'] = 'before,after'
+    parameters['filter'] = 'Lee Sigma'
+    parameters['filterSizeX'] = '3'
+    parameters['filterSizeY'] = '3'
+    parameters['dampingFactor'] = '2'
+    parameters['estimateENL'] = 'true'
+    parameters['enl'] = '1.0'
+    parameters['numLooksStr'] = '1'
+    parameters['windowSize'] = '7x7'
+    parameters['targetWindowSizeStr'] = '3x3'
+    parameters['sigmaStr'] = '0.9'
+    parameters['anSize'] = '50'
+    
+    mygraph.add_node(node_id,
+                     operator, 
+                     parameters,
+                     source_node_id)
+    
+    
+    source_node_id = node_id
+    
+    operator = 'Write'
+
+    parameters = get_operator_default_parameters(operator)
+
+    parameters['file'] = 'mtsf'
+    parameters['formatName'] = 'BEAM-DIMAP'
+
+    node_id = 'Write'
+
+    mygraph.add_node(node_id,
+                     operator,
+                     parameters,
+                     source_node_id)
+
+    if show_graph: 
+        mygraph.view_graph()
+
+    mygraph.run()
+
 
 def create_stack(products, show_graph=True):
     
