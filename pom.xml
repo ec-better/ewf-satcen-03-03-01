@@ -11,7 +11,7 @@
     <version>2.0.0</version>
   </parent>
   <description>Sentinel-1 burned area identification</description>
-  <version>0.8-SNAPSHOT</version>
+  <version>0.8</version>
   <properties>
     <summary>Sentinel-1 burned area identification</summary>
     <description>Sentinel-1 burned area identification</description>
