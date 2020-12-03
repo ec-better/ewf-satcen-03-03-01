@@ -26,9 +26,9 @@ os.environ['_JAVA_OPTIONS'] = '-Xms24g -Xmx24g'
 import otbApplication
 from gdal_calc import Calc as gdalCalc
 
+ciop = cioppy.Cioppy()
+
 def get_metadata(input_references, data_path):
-    
-    ciop = cioppy.Cioppy()
 
     if isinstance(input_references, str):
 
@@ -83,7 +83,36 @@ def get_inteserction_aoi_prod(aoi,prod_wkt):
     return loads(prod_wkt).intersection(loads(aoi)).wkt
 
 
-def pre_process(products, aoi, resolution='10.0', polarization=None, orbit_type=None, show_graph=False):
+def zone(coordinates):
+    
+    if 56 <= coordinates[1] < 64 and 3 <= coordinates[0] < 12:
+        return 32
+    if 72 <= coordinates[1] < 84 and 0 <= coordinates[0] < 42:
+        if coordinates[0] < 9:
+            return 31
+        elif coordinates[0] < 21:
+            return 33
+        elif coordinates[0] < 33:
+            return 35
+        return 37
+    return int((coordinates[0] + 180) / 6) + 1 ,'CDEFGHJKLMNPQRSTUVWXX'[int((coordinates[1] + 80) / 8)]
+
+
+def get_epsg(reference):
+
+    search = ciop.search(end_point=reference, params=[], output_fields='self,enclosure,wkt')
+    x=loads(search[0]['wkt']).centroid.coords
+    coord=x[0]
+    z, l = zone(coord)
+    # The EPSG code is 32600+zone for positive latitudes and 32700+zone for negatives.
+    if coord[0]>0 :
+        EPSG='EPSG:326'+str(z)
+    else:
+        EPSG='EPSG:327'+str(z)
+    
+    return EPSG
+
+def pre_process(products, aoi, epsg_code, resolution='10.0', polarization=None, orbit_type=None, show_graph=False):
 
     #mygraph = GraphProcessor()
     
@@ -183,9 +212,7 @@ def pre_process(products, aoi, resolution='10.0', polarization=None, orbit_type=
     
         parameters = get_operator_default_parameters(operator)
 
-        #map_proj = utm_zone
-
-        parameters['mapProjection'] = 'AUTO:42001'
+        parameters['mapProjection'] = epsg_code#'AUTO:42001'
         parameters['pixelSpacingInMeter'] = resolution           
         parameters['nodataValueAtSea'] = 'true'
         #parameters['demName'] = 'SRTM 1Sec HGT'
@@ -565,6 +592,7 @@ def change_detection(input_product, output_product, expression, show_graph=False
         mygraph.view_graph()
     
     mygraph.run()
+    
 
 def convert_dim(input_product, show_graph=False):
     
