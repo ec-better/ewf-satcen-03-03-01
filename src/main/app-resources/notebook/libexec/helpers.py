@@ -13,6 +13,8 @@ from shapely.geometry import box
 from shapely.wkt import loads
 import sys
 
+gdal.UseExceptions()
+
 sys.path.append('/opt/OTB/lib/python')
 sys.path.append('/opt/OTB/lib/libfftw3.so.3')
 sys.path.append('/opt/anaconda/bin')
@@ -98,19 +100,31 @@ def zone(coordinates):
     return int((coordinates[0] + 180) / 6) + 1 ,'CDEFGHJKLMNPQRSTUVWXX'[int((coordinates[1] + 80) / 8)]
 
 
-def get_epsg(reference):
+def get_epsg(row,epsg):
 
-    search = ciop.search(end_point=reference, params=[], output_fields='self,enclosure,wkt')
-    x=loads(search[0]['wkt']).centroid.coords
-    coord=x[0]
-    z, l = zone(coord)
-    # The EPSG code is 32600+zone for positive latitudes and 32700+zone for negatives.
-    if coord[0]>0 :
-        EPSG='EPSG:326'+str(z)
-    else:
-        EPSG='EPSG:327'+str(z)
+    #search = ciop.search(end_point=reference, params=[], output_fields='self,enclosure,wkt')
+    #x=loads(search[0]['wkt']).centroid.coords
     
-    return EPSG
+    epsg_codes = dict()
+    
+    if epsg is None:
+    
+        x=loads(row['wkt']).centroid.coords
+        coord=x[0]
+        z, l = zone(coord)
+        # The EPSG code is 32600+zone for positive latitudes and 32700+zone for negatives.
+        if coord[0]>=0 :
+            EPSG='EPSG:326'+str(z)
+        else:
+            EPSG='EPSG:327'+str(z)
+            
+        epsg_codes['epsg'] = EPSG
+        
+    else:
+        epsg_codes['epsg'] = epsg
+    
+    return pd.Series(epsg_codes)
+
 
 def pre_process(products, aoi, epsg_code, resolution='10.0', polarization=None, orbit_type=None, show_graph=False):
 
@@ -212,7 +226,7 @@ def pre_process(products, aoi, epsg_code, resolution='10.0', polarization=None, 
     
         parameters = get_operator_default_parameters(operator)
 
-        parameters['mapProjection'] = epsg_code#'AUTO:42001'
+        parameters['mapProjection'] = product.epsg #'AUTO:42001'
         parameters['pixelSpacingInMeter'] = resolution           
         parameters['nodataValueAtSea'] = 'true'
         #parameters['demName'] = 'SRTM 1Sec HGT'
