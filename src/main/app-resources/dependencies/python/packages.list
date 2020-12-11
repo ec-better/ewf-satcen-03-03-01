@@ -10,7 +10,6 @@ ipython=5.8.0
 jupyter_client=5.3.4=py27_0
 nbconvert
 nbformat
-numpy
 pandas
 py_snap_helpers=0.0.4
 python
