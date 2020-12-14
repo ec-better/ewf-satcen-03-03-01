@@ -2,6 +2,7 @@
 # $ conda create --name <env> --file <this file>
 # platform: linux-64
 app_descriptor_generator
+backports.functools_lru_cache
 cioppy
 gdal=2.2.2=py27hae9aa10_1
 geopandas
