@@ -1,18 +1,13 @@
 # This file may be used to create an environment using:
 # $ conda create --name <env> --file <this file>
 # platform: linux-64
-app_descriptor_generator
-backports.functools_lru_cache
 cioppy
-gdal=2.2.2=py27hae9aa10_1
+gdal>2.2.2
 geopandas
-ipykernel=4.10.0
-ipython=5.8.0
-jupyter_client=5.3.4=py27_0
 nbconvert
 nbformat
 pandas
-py_snap_helpers=0.0.4
+py_snap_helpers
 python
 python-dateutil=2.8.1
 shapely
