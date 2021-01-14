@@ -1,4 +1,4 @@
-#!/opt/anaconda/bin/python
+#!/opt/anaconda/envs/env_ewf_satcen_03_03_01/bin/python
 
 import sys
 reload(sys)
@@ -246,7 +246,7 @@ def main():
     nb_target = os.path.join(runtime, 'result.ipynb')  
 
     try:
-        execute(nb_source, nb_target, 'python2') 
+        execute(nb_source, nb_target, 'env_ewf_satcen_03_03_01')
     except Exception, e:
         out = None
         ciop.log('ERROR', 'Error executing the notebook "%s".' % nb_source)
