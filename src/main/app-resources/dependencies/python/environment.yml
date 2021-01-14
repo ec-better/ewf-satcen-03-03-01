@@ -1,0 +1,20 @@
+name: env_ewf_satcen_03_03_01
+channels:
+  - conda-forge
+  - terradue
+  - defaults
+dependencies:
+  - cioppy
+  - gdal>2.2.2
+  - geopandas
+  - ipykernel
+  - jupyter_client
+  - nbconvert
+  - nbformat
+  - pandas
+  - py_snap_helpers
+  - python
+  - python-dateutil=2.8.1
+  - shapely
+  - snappy=6.0
+prefix: /opt/anaconda/envs/env_ewf_satcen_03_03_01
