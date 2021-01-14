@@ -2,7 +2,7 @@
   <jobTemplates>
     <jobTemplate id="notebook">
       <streamingExecutable>/application/notebook/run</streamingExecutable>
-      <defaultParameters><parameter id="polarization" title="Polarization" abstract="Polarization (VV or VH)" maxOccurs="1" scope="runtime" type="LiteralData">VV</parameter><parameter id="aoi" title="Area of interest" abstract="Area of interest" maxOccurs="1" scope="runtime" type="LiteralData">POLYGON ((149.1733316344 -34.3218325277, 150.3652377054 -34.2948655567, 150.4056772124 -35.2832818792, 149.1994838956 -35.3112545059, 149.1733316344 -34.3218325277))</parameter><parameter id="resolution" title="Resolution in meters" abstract="Resolution in meters" maxOccurs="1" scope="runtime" type="LiteralData">10.0</parameter><parameter id="orbit_type" title="Orbit type, Restituted or Precise" abstract="Orbit type, Restituted or Precise" maxOccurs="1" scope="runtime" type="LiteralData">Precise</parameter><parameter id="change_detection_expression" title="Change detection expression" abstract="Change detection expression (where [0] corresponds to the master, [1] to the slave)" maxOccurs="1" scope="runtime" type="LiteralData">([0] &gt; 0.0001) &amp;&amp; ([1] &gt; 0.0001) &amp;&amp; (abs(log10([0] / [1])) &gt; 1) &amp;&amp; ([0] &gt; 0.05 || [1] &gt; 0.05)</parameter></defaultParameters>
+      <defaultParameters><parameter id="polarization" title="Polarization" abstract="Polarization (VV or VH)" maxOccurs="1" scope="runtime" type="LiteralData">VV</parameter><parameter id="aoi" title="Area of interest" abstract="Area of interest" maxOccurs="1" scope="runtime" type="LiteralData">POLYGON((-58.337 -16.815,-54.998 -16.731,-55.031 -21.248,-58.326 -21.259,-58.337 -16.815))</parameter><parameter id="resolution" title="Resolution in meters" abstract="Resolution in meters" maxOccurs="1" scope="runtime" type="LiteralData">10.0</parameter><parameter id="orbit_type" title="Orbit type, Restituted or Precise" abstract="Orbit type, Restituted or Precise" maxOccurs="1" scope="runtime" type="LiteralData">Precise</parameter><parameter id="change_detection_expression" title="Change detection expression" abstract="Change detection expression (where [0] corresponds to the master, [1] to the slave)" maxOccurs="1" scope="runtime" type="LiteralData">([0] &gt; 0.0001) &amp;&amp; ([1] &gt; 0.0001) &amp;&amp; (abs(log10([0] / [1])) &gt; 1) &amp;&amp; ([0] &gt; 0.05 || [1] &gt; 0.05)</parameter></defaultParameters>
      <defaultJobconf>
         <property id="mapred.task.timeout">9900000000000</property>
         <property id="ciop.job.max.tasks">1</property> 
@@ -14,7 +14,7 @@
     <node id="notebook">
       <job id="notebook"/>
       <sources>
-        <source id="source" title="Input references" abstract="Input references" refid="string:list" scope="runtime">https://catalog.terradue.com/sentinel1/search?format=json&amp;uid=S1A_IW_GRDH_1SDV_20191025T191551_20191025T191616_029619_035F6B_CC56,https://catalog.terradue.com/sentinel1/search?format=json&amp;uid=S1A_IW_GRDH_1SDV_20191212T191551_20191212T191616_030319_0377C8_5456</source>
+        <source id="source" title="Input references" abstract="Input references" refid="string:list" scope="runtime">https://catalog.terradue.com/sentinel1/search?format=json&amp;uid=S1B_IW_SLC__1SDV_20200809T090957_20200809T091027_022844_02B5CE_C9B2,https://catalog.terradue.com/sentinel1/search?format=json&amp;uid=S1B_IW_SLC__1SDV_20200821T090958_20200821T091028_023019_02BB44_8233</source>
       </sources>
     </node>
   </workflow>

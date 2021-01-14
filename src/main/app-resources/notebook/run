@@ -1,8 +1,8 @@
 #!/opt/anaconda/envs/env_ewf_satcen_03_03_01/bin/python
 
 import sys
-reload(sys)
-sys.setdefaultencoding('utf8')
+#reload(sys)
+#sys.setdefaultencoding('utf8')
 import os
 import io
 import shutil
@@ -247,7 +247,7 @@ def main():
 
     try:
         execute(nb_source, nb_target, 'env_ewf_satcen_03_03_01')
-    except Exception, e:
+    except Exception as e:
         out = None
         ciop.log('ERROR', 'Error executing the notebook "%s".' % nb_source)
 
