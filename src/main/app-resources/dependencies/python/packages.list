@@ -4,6 +4,7 @@
 cioppy
 gdal>2.2.2
 geopandas
+jupyter_client
 nbconvert
 nbformat
 pandas
