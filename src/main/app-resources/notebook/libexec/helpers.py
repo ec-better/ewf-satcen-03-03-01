@@ -3,7 +3,7 @@ import geopandas as gp
 import os
 import pandas as pd
 from py_snap_helpers import *
-from shapely.geometry import box
+
 from snappy import jpy
 from snappy import ProductIO
 import gdal
@@ -22,6 +22,11 @@ os.environ['OTB_APPLICATION_PATH'] = '/opt/OTB/lib/otb/applications'
 os.environ['LD_LIBRARY_PATH'] = '/opt/OTB/lib'
 os.environ['ITK_AUTOLOAD_PATH'] = '/opt/OTB/lib/otb/applications'
 
+#try:
+#    os.environ['JAVA_HOME']
+#except KeyError:
+#    os.environ['JAVA_HOME'] = '/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.161-3.b14.el6_9.x86_64' 
+
 os.environ['_JAVA_OPTIONS'] = '-Xms24g -Xmx24g'
 
 
@@ -39,9 +44,10 @@ def get_metadata(input_references, data_path):
         search_params['do'] = 'terradue'
 
         products = gp.GeoDataFrame(ciop.search(end_point=input_references, 
-                            params=search_params,
-                            output_fields='identifier,self,wkt,startdate,enddate,enclosure,orbitDirection,track,orbitNumber', 
-                            model='EOP'))
+                                               params=search_params,
+                                               output_fields='identifier,self,wkt,startdate,enddate,enclosure,orbitDirection,track,orbitNumber',
+                                               timeout=360000,
+                                               model='EOP'))
 
     else:    
 
@@ -126,7 +132,7 @@ def get_epsg(row,epsg):
     return pd.Series(epsg_codes)
 
 
-def pre_process(products, aoi, epsg_code, resolution='10.0', polarization=None, orbit_type=None, show_graph=False):
+def pre_process(products, aoi, resolution='10.0', polarization=None, orbit_type=None, show_graph=False):
 
     #mygraph = GraphProcessor()
     
