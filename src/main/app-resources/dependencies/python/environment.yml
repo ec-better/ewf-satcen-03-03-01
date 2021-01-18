@@ -13,6 +13,7 @@ dependencies:
   - nbformat
   - pandas
   - py_snap_helpers
+  - psutil
   - python
   - python-dateutil=2.8.1
   - shapely
