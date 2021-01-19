@@ -1,38 +1,31 @@
-import cioppy
+from py_snap_helpers import *
+import otbApplication
+from ogr import osr
+import ogr
+import gdal
 import geopandas as gp
 import os
 import pandas as pd
-from py_snap_helpers import *
 
-from snappy import jpy
-from snappy import ProductIO
-import gdal
-import osr
-import ogr
+
 from shapely.geometry import box
 from shapely.wkt import loads
 import sys
 
 gdal.UseExceptions()
 
-sys.path.append('/opt/OTB/lib/python')
-sys.path.append('/opt/OTB/lib/libfftw3.so.3')
-sys.path.append('/opt/anaconda/bin')
-os.environ['OTB_APPLICATION_PATH'] = '/opt/OTB/lib/otb/applications'
-os.environ['LD_LIBRARY_PATH'] = '/opt/OTB/lib'
-os.environ['ITK_AUTOLOAD_PATH'] = '/opt/OTB/lib/otb/applications'
-
-#try:
-#    os.environ['JAVA_HOME']
-#except KeyError:
-#    os.environ['JAVA_HOME'] = '/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.161-3.b14.el6_9.x86_64' 
+#sys.path.append('/opt/OTB/lib/python')
+#sys.path.append('/opt/OTB/lib/libfftw3.so.3')
+#sys.path.append('/opt/anaconda/bin')
+#os.environ['OTB_APPLICATION_PATH'] = '/opt/OTB/lib/otb/applications'
+#os.environ['LD_LIBRARY_PATH'] = '/opt/OTB/lib'
+#os.environ['ITK_AUTOLOAD_PATH'] = '/opt/OTB/lib/otb/applications'
 
 os.environ['_JAVA_OPTIONS'] = '-Xms24g -Xmx24g'
 
+#from gdal_calc import Calc as gdalCalc
 
-import otbApplication
-from gdal_calc import Calc as gdalCalc
-
+import cioppy
 ciop = cioppy.Cioppy()
 
 def get_metadata(input_references, data_path):
@@ -132,14 +125,14 @@ def get_epsg(row,epsg):
     return pd.Series(epsg_codes)
 
 
-def pre_process(products, aoi, resolution='10.0', polarization=None, orbit_type=None, show_graph=False):
+def pre_process(gpt_path, products, aoi, resolution='10.0', polarization=None, orbit_type=None, dem_type='SRTM 1Sec HGT',show_graph=False):
 
     #mygraph = GraphProcessor()
     
     for index, product in products.iterrows():
 
         #aoi_subset = get_inteserction_aoi_prod(aoi,products['wkt'][index])
-        mygraph = GraphProcessor()
+        mygraph = GraphProcessor(gpt_path)
         
         operator = 'Read'
         parameters = get_operator_default_parameters(operator)
@@ -153,22 +146,22 @@ def pre_process(products, aoi, resolution='10.0', polarization=None, orbit_type=
 
         source_node_id = node_id
 
-        operator = 'Subset'
+#        operator = 'Subset'
         
-        node_id = 'Subset-{0}'.format(index)
+#        node_id = 'Subset-{0}'.format(index)
         
-        parameters = get_operator_default_parameters(operator)
-        parameters['geoRegion'] = aoi
-        parameters['copyMetadata'] = 'true'
+#        parameters = get_operator_default_parameters(operator)
+#        parameters['geoRegion'] = aoi
+#        parameters['copyMetadata'] = 'true'
 
 
-        mygraph.add_node(node_id,
-                         operator,
-                         parameters,
-                         source_node_id)
+#        mygraph.add_node(node_id,
+#                         operator,
+#                         parameters,
+#                         source_node_id)
 
-        source_node_id = node_id
-        
+#        source_node_id = node_id
+
         
         operator = 'Apply-Orbit-File'
 
@@ -225,6 +218,19 @@ def pre_process(products, aoi, resolution='10.0', polarization=None, orbit_type=
                          source_node_id)
 
         source_node_id = node_id
+        
+        ####Burst Merging 
+        operator = 'TOPSAR-Deburst'
+        parameters = get_operator_default_parameters(operator)
+        node_id = 'TOPSAR-Deburst'
+        
+        mygraph.add_node(node_id,
+                         operator,
+                         parameters,
+                         source_node_id)
+
+        source_node_id = node_id
+        
 
         operator = 'Terrain-Correction'
     
@@ -236,60 +242,16 @@ def pre_process(products, aoi, resolution='10.0', polarization=None, orbit_type=
         parameters['pixelSpacingInMeter'] = resolution           
         parameters['nodataValueAtSea'] = 'true'
         #parameters['demName'] = 'SRTM 1Sec HGT'
-        parameters['demName'] = 'SRTM 3Sec'
-        
+        #parameters['demName'] = 'SRTM 3Sec'
+        parameters['demName'] = dem_type
         
         mygraph.add_node(node_id,
                          operator,
                          parameters,
                          source_node_id)
-
+        
         source_node_id = node_id
-
         
-        operator = 'Write'
-
-        parameters = get_operator_default_parameters(operator)
-
-        parameters['file'] = product.identifier 
-        parameters['formatName'] = 'BEAM-DIMAP'
-
-        node_id = 'Write-{0}'.format(index)
-
-        mygraph.add_node(node_id,
-                         operator,
-                         parameters,
-                         source_node_id)
-       
-        if show_graph: 
-            mygraph.view_graph()
-        
-        mygraph.run()
-
-
-
-
-def deprecated_pre_process(products, aoi, utm_zone, resolution='10.0', polarization=None, orbit_type=None, show_graph=False):
-
-    #mygraph = GraphProcessor()
-    
-    for index, product in products.iterrows():
-
-        #aoi_subset = get_inteserction_aoi_prod(aoi,products['wkt'][index])
-        mygraph = GraphProcessor()
-        
-        operator = 'Read'
-        parameters = get_operator_default_parameters(operator)
-        node_id = 'Read-{0}'.format(index)
-        source_node_id = ''
-        parameters['file'] = product.local_path 
-        mygraph.add_node(node_id,
-                         operator, 
-                         parameters,
-                         source_node_id)
-
-        source_node_id = node_id
-
         operator = 'Subset'
         
         node_id = 'Subset-{0}'.format(index)
@@ -298,71 +260,7 @@ def deprecated_pre_process(products, aoi, utm_zone, resolution='10.0', polarizat
         parameters['geoRegion'] = aoi
         parameters['copyMetadata'] = 'true'
 
-        mygraph.add_node(node_id,
-                         operator,
-                         parameters,
-                         source_node_id)
 
-        source_node_id = node_id
-        
-        
-        operator = 'Apply-Orbit-File'
-
-        parameters = get_operator_default_parameters(operator)
-        
-        if orbit_type == 'Restituted':
-        
-            parameters['orbitType'] = 'Sentinel Restituted (Auto Download)'
-            
-
-        node_id = 'Apply-Orbit-File-{0}'.format(index)
-        mygraph.add_node(node_id, 
-                         operator, 
-                         parameters, 
-                         source_node_id)
-
-        source_node_id = node_id
-
-#        operator = 'ThermalNoiseRemoval'
-#        node_id = 'ThermalNoiseRemoval-{0}'.format(index)
-#        parameters = get_operator_default_parameters(operator)
-#        mygraph.add_node(node_id,
-#                         operator,
-#                         parameters,
-#                         source_node_id)
-
-#        source_node_id = node_id
-
-        operator = 'Calibration'
-        node_id = 'Calibration-{0}'.format(index)
-        parameters = get_operator_default_parameters(operator)
-
-        parameters['outputSigmaBand'] = 'true'
-        
-        if polarization is not None:
-            
-            parameters['selectedPolarisations'] = polarization
-        
-        mygraph.add_node(node_id,
-                         operator,
-                         parameters,
-                         source_node_id)
-
-        source_node_id = node_id
-
-        operator = 'Terrain-Correction'
-    
-        node_id = 'Terrain-Correction-{0}'.format(index)
-    
-        parameters = get_operator_default_parameters(operator)
-
-        map_proj = utm_zone
-
-        parameters['mapProjection'] = map_proj
-        parameters['pixelSpacingInMeter'] = resolution            
-        parameters['nodataValueAtSea'] = 'false'
-        parameters['demName'] = 'SRTM 1Sec HGT'
-        
         mygraph.add_node(node_id,
                          operator,
                          parameters,
@@ -391,27 +289,29 @@ def deprecated_pre_process(products, aoi, utm_zone, resolution='10.0', polarizat
         mygraph.run()
 
 
-def speckle_filter(products, show_graph=True):
+
+def speckle_filter(gpt_path, products, show_graph=True):
     
-    mygraph = GraphProcessor()
+    mygraph = GraphProcessor(gpt_path)
     
     operator = 'Read'
     parameters = get_operator_default_parameters(operator)
     node_id_0 = 'Read-0'
     source_node_id = ''
     parameters['file'] = '{}.dim'.format(products.identifier.values[0])
+    
     mygraph.add_node(node_id_0,
                      operator, 
                      parameters,
                      source_node_id)
 
     
-    
     operator = 'Read'
     parameters = get_operator_default_parameters(operator)
     node_id_1 = 'Read-1'
     source_node_id = ''
     parameters['file'] = '{}.dim'.format(products.identifier.values[1])
+    
     mygraph.add_node(node_id_1,
                      operator, 
                      parameters,
@@ -492,9 +392,9 @@ def speckle_filter(products, show_graph=True):
     mygraph.run()
 
 
-def create_stack(products, show_graph=True):
+def create_stack(gpt_path, products, show_graph=True):
     
-    mygraph = GraphProcessor()
+    mygraph = GraphProcessor(gpt_path)
     
     operator = 'ProductSet-Reader'
     parameters = get_operator_default_parameters(operator)
@@ -553,9 +453,9 @@ def list_bands(product):
     return list(product.getBandNames())
 
 
-def change_detection(input_product, output_product, expression, show_graph=False):
+def change_detection(gpt_path, input_product, output_product, expression, show_graph=False):
     
-    mygraph = GraphProcessor()
+    mygraph = GraphProcessor(gpt_path)
     
     operator = 'Read'
 
@@ -614,9 +514,9 @@ def change_detection(input_product, output_product, expression, show_graph=False
     mygraph.run()
     
 
-def convert_dim(input_product, show_graph=False):
+def convert_dim(gpt_path, input_product, show_graph=False):
     
-    mygraph = GraphProcessor()
+    mygraph = GraphProcessor(gpt_path)
     
     operator = 'Read'
 
@@ -734,10 +634,16 @@ def create_composite(input_products, output_product, band_expressions):
 def create_mask(in_composite, out_mask):
     
     #gdal_calc.py --calc="logical_and(logical_and(A==255, B==0), C==0)" -A $1 --A_band=1 -B $1 --B_band=2 -C $1 --C_band=3 --outfile=${1::-8}.mask.tif
+    command = '/opt/anaconda/envs/env_ewf_satcen_03_03_01/bin/gdal_calc.py --calc="logical_and(logical_and(A==255, B==0), C==0)" -A {0} --A_band=1 -B {0} --B_band=2 -C {0} --C_band=3 --outfile={1}'.format(in_composite, out_mask)
+
+    # Run the command. os.system() returns value zero if the command was executed succesfully
+    out = os.system(command)
+    if out !=0:
+        print('ERROR gdla_calc out: {}'.format(out))
     
-    calc_exp="logical_and(logical_and(A==255, B==0), C==0)"
+    #calc_exp="logical_and(logical_and(A==255, B==0), C==0)"
     
-    gdalCalc(calc=calc_exp, A=in_composite, A_band=1, B=in_composite, B_band=2, C=in_composite, C_band=3, outfile=out_mask)
+    #gdalCalc(calc=calc_exp, A=in_composite, A_band=1, B=in_composite, B_band=2, C=in_composite, C_band=3, outfile=out_mask)
     
     
 def create_rbb(in_rgb, out_rbb):

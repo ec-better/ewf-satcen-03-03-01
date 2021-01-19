@@ -1,8 +1,12 @@
 #!/opt/anaconda/envs/env_ewf_satcen_03_03_01/bin/python
 
 import sys
-#reload(sys)
-#sys.setdefaultencoding('utf8')
+from importlib import reload
+reload(sys)
+if sys.version[0] == '2':
+    reload(sys)
+    sys.setdefaultencoding("utf-8")
+
 import os
 import io
 import shutil

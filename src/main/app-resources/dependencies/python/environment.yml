@@ -4,18 +4,22 @@ channels:
   - terradue
   - defaults
 dependencies:
-  - cioppy
-  - gdal>2.2.2
-  - geopandas
-  - ipykernel
+  - cioppy=0.3.7
+  - snap
+  - gdal>=2.2.4
+  - geopandas=0.6.3
+  - ipykernel=5.1.0
+  - kealib=1.4.7
+  - lxml=4.2.5
+  - nbconvert=5.5.0 
+  - nbformat=5.0.8
   - jupyter_client
-  - nbconvert
-  - nbformat
+  - otb=7.0.0
   - pandas
-  - py_snap_helpers
+  - poppler<0.66
   - psutil
-  - python
-  - python-dateutil=2.8.1
-  - shapely
-  - snappy=6.0
+  - pyyaml=3.13
+  - imageio
+  - parso=0.7
+  - shapely=1.6.4
 prefix: /opt/anaconda/envs/env_ewf_satcen_03_03_01
