@@ -98,7 +98,7 @@ class GraphProcessor():
             sources_elem = self.root.xpath(xpath_expr + '/sources')[0]
             parameters_elem = self.root.xpath(xpath_expr + '/parameters')
 
-            for key, value in parameters.iteritems():
+            for key, value in parameters.items():
                 
                 if key == 'targetBandDescriptors':
                                         
@@ -132,7 +132,6 @@ class GraphProcessor():
             
             elif isinstance(source, dict):
 
-                #for key, value in source.iteritems():
                 for key, value in source.items():
                     
                     source_product_elem = etree.SubElement(sources_elem, key)
@@ -145,7 +144,6 @@ class GraphProcessor():
             parameters_elem = etree.SubElement(node_elem, 'parameters')
             parameters_elem.attrib['class'] = 'com.bc.ceres.binding.dom.XppDomElement'
 
-            #for key, value in parameters.iteritems():
             for key, value in parameters.items():
 
                 if key == 'targetBandDescriptors':

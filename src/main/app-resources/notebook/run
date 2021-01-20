@@ -171,7 +171,7 @@ def execute(nb_source, nb_target, kernel = 'python2'):
             
             ciop.log('ERROR', 'Error executing the notebook "%s".' % nb_source)
         out = None
-        with io.open(nb_target, 'wb') as file:
+        with io.open(nb_target, 'w') as file:
             file.write(nbf.writes(nb))
             file.close()
 
@@ -278,4 +278,3 @@ except SystemExit as e:
     raise
 else:
     atexit.register(clean_exit, 0)
-

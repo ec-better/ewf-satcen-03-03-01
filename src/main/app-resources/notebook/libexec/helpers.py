@@ -23,7 +23,7 @@ gdal.UseExceptions()
 
 os.environ['_JAVA_OPTIONS'] = '-Xms24g -Xmx24g'
 
-#from gdal_calc import Calc as gdalCalc
+from gdal_calc import Calc as gdalCalc
 
 import cioppy
 ciop = cioppy.Cioppy()
@@ -564,7 +564,8 @@ def cog(input_tif, output_tif):
     
     translate_options = gdal.TranslateOptions(gdal.ParseCommandLine('-co TILED=YES ' \
                                                                     '-co COPY_SRC_OVERVIEWS=YES ' \
-                                                                    ' -co COMPRESS=LZW'))
+                                                                    '-co BIGTIFF=YES ' \
+                                                                    '-co COMPRESS=LZW'))
 
     ds = gdal.Open(input_tif, gdal.OF_READONLY)
 
@@ -618,7 +619,7 @@ def create_composite(input_products, output_product, band_expressions):
 
     BandMathX.ExecuteAndWriteOutput()
 
-    Convert = otbApplication.Registry.CreateApplication('Convert')
+    Convert = otbApplication.Registry.CreateApplication('DynamicConvert')
 
     Convert.SetParameterString('in', 'temp_red_green_blue.tif')
     Convert.SetParameterString('out', output_product)
@@ -634,16 +635,16 @@ def create_composite(input_products, output_product, band_expressions):
 def create_mask(in_composite, out_mask):
     
     #gdal_calc.py --calc="logical_and(logical_and(A==255, B==0), C==0)" -A $1 --A_band=1 -B $1 --B_band=2 -C $1 --C_band=3 --outfile=${1::-8}.mask.tif
-    command = '/opt/anaconda/envs/env_ewf_satcen_03_03_01/bin/gdal_calc.py --calc="logical_and(logical_and(A==255, B==0), C==0)" -A {0} --A_band=1 -B {0} --B_band=2 -C {0} --C_band=3 --outfile={1}'.format(in_composite, out_mask)
+    #command = '/opt/anaconda/envs/env_ewf_satcen_03_03_01/bin/gdal_calc.py --calc="logical_and(logical_and(A==255, B==0), C==0)" -A {0} --A_band=1 -B {0} --B_band=2 -C {0} --C_band=3 --outfile={1}'.format(in_composite, out_mask)
 
     # Run the command. os.system() returns value zero if the command was executed succesfully
-    out = os.system(command)
-    if out !=0:
-        print('ERROR gdla_calc out: {}'.format(out))
+    #out = os.system(command)
+    #if out !=0:
+    #    print('ERROR gdla_calc out: {}'.format(out))
     
-    #calc_exp="logical_and(logical_and(A==255, B==0), C==0)"
+    calc_exp="logical_and(logical_and(A==255, B==0), C==0)"
     
-    #gdalCalc(calc=calc_exp, A=in_composite, A_band=1, B=in_composite, B_band=2, C=in_composite, C_band=3, outfile=out_mask)
+    gdalCalc(calc=calc_exp, A=in_composite, A_band=1, B=in_composite, B_band=2, C=in_composite, C_band=3, outfile=out_mask)
     
     
 def create_rbb(in_rgb, out_rbb):

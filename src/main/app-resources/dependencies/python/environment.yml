@@ -5,6 +5,7 @@ channels:
   - defaults
 dependencies:
   - cioppy=0.3.7
+  - app_descriptor_generator
   - snap
   - gdal>=2.2.4
   - geopandas=0.6.3
