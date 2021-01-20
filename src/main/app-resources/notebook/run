@@ -1,8 +1,12 @@
 #!/opt/anaconda/envs/env_ewf_satcen_03_03_01/bin/python
 
 import sys
+from importlib import reload
 reload(sys)
-sys.setdefaultencoding('utf8')
+if sys.version[0] == '2':
+    reload(sys)
+    sys.setdefaultencoding("utf-8")
+
 import os
 import io
 import shutil
@@ -167,7 +171,7 @@ def execute(nb_source, nb_target, kernel = 'python2'):
             
             ciop.log('ERROR', 'Error executing the notebook "%s".' % nb_source)
         out = None
-        with io.open(nb_target, 'wb') as file:
+        with io.open(nb_target, 'w') as file:
             file.write(nbf.writes(nb))
             file.close()
 
@@ -175,7 +179,7 @@ def execute(nb_source, nb_target, kernel = 'python2'):
         raise
     finally:
         ciop.log('INFO', 'Write notebook')  
-        with io.open(nb_target, 'wb') as file:
+        with io.open(nb_target, 'w') as file:
             file.write(nbf.writes(nb))
             file.close()   
 
@@ -194,15 +198,25 @@ def clean_up():
 def main():
 
     global runtime
+    global tmp_dir
     
-    
-    # SB testing purpose
+    # Removing any previous folder for the data stage-in 
+    # SB testing purpose (data path under /workspace/tmp)
     #try:
-    #    for d in [x for x in os.listdir('/workspace/tmp')]:# if 'workspace' in x]:
+    #    for d in [x for x in os.listdir('/workspace/tmp')]:
     #        ciop.log('DEBUG','Removing /workspace/tmp/{}'.format(d))
     #        shutil.rmtree('/workspace/tmp/{}'.format(d))
     #except:
     #    pass
+    
+    # SB testing purpose (data path under /tmp)
+    try:
+        for d in [x for x in os.listdir('/tmp') if 'workspace' in x]:
+            ciop.log('DEBUG','Removing /tmp/{}'.format(d))
+            shutil.rmtree('/tmp/{}'.format(d))
+    except:
+        pass
+    
     
     runtime = os.path.join(ciop.tmp_dir, str(uuid.uuid4())) 
     
@@ -214,21 +228,13 @@ def main():
     os.chdir(runtime) 
     
     # create the folder for the data stage-in
-    global tmp_dir
     
-    
-    # SB testing purpose
-    #try:
-    #    for d in [x for x in os.listdir('/tmp') if 'workspace' in x]:
-    #        ciop.log('DEBUG','Removing /tmp/{}'.format(d))
-    #        shutil.rmtree('/tmp/{}'.format(d))
-    #except:
-    #    pass
-    
-    # SB testing purpose
+    # SB testing purpose (data path under /workspace/tmp)
     #tmp_dir = os.path.join('/workspace/tmp', 'workspace-' + str(uuid.uuid4()), 'data')
     
+    # data path under /tmp
     tmp_dir = os.path.join('/tmp', 'workspace-' + str(uuid.uuid4()), 'data') 
+    
     os.makedirs(tmp_dir)
   
     # Loops over all the inputs
@@ -247,11 +253,11 @@ def main():
 
     try:
         execute(nb_source, nb_target, 'env_ewf_satcen_03_03_01')
-    except Exception, e:
+    except Exception as e:
         out = None
         ciop.log('ERROR', 'Error executing the notebook "%s".' % nb_source)
 
-        with io.open(nb_target, 'wb') as file:
+        with io.open(nb_target, 'w') as file:
             file.write(nbf.writes(nb))
             file.close()
 
@@ -272,4 +278,3 @@ except SystemExit as e:
     raise
 else:
     atexit.register(clean_exit, 0)
-

@@ -107,9 +107,7 @@
                   <requires>
                     <require>fftw</require>
                     <require>miniconda</require>
-                    <require>OTB</require>
                     <require>java-1.8.0-openjdk-devel</require>
-                    <require>snap6</require>
                   </requires>
                   <postinstallScriptlet combine.self="override">
                     <script>/application/scripts/install/postinstall.sh</script>
