@@ -28,6 +28,16 @@ from gdal_calc import Calc as gdalCalc
 import cioppy
 ciop = cioppy.Cioppy()
 
+
+def check_existence(product):
+
+    if os.path.isfile('{}'.format(product)):
+        print('output file: {} generated successfully.'.format(product))
+    else:
+        raise RuntimeError('Missing output file: {}.dim'.format(product))
+
+
+
 def get_metadata(input_references, data_path):
 
     if isinstance(input_references, str):
@@ -106,7 +116,7 @@ def get_epsg(row,epsg):
     
     epsg_codes = dict()
     
-    if epsg is None:
+    if epsg =='None':
     
         x=loads(row['wkt']).centroid.coords
         coord=x[0]
@@ -145,23 +155,6 @@ def pre_process(gpt_path, products, aoi, resolution='10.0', polarization=None, o
                          source_node_id)
 
         source_node_id = node_id
-
-#        operator = 'Subset'
-        
-#        node_id = 'Subset-{0}'.format(index)
-        
-#        parameters = get_operator_default_parameters(operator)
-#        parameters['geoRegion'] = aoi
-#        parameters['copyMetadata'] = 'true'
-
-
-#        mygraph.add_node(node_id,
-#                         operator,
-#                         parameters,
-#                         source_node_id)
-
-#        source_node_id = node_id
-
         
         operator = 'Apply-Orbit-File'
 
@@ -290,7 +283,7 @@ def pre_process(gpt_path, products, aoi, resolution='10.0', polarization=None, o
 
 
 
-def speckle_filter(gpt_path, products, show_graph=True):
+def speckle_filter(gpt_path, products, working_dir='.', show_graph=True):
     
     mygraph = GraphProcessor(gpt_path)
     
@@ -298,7 +291,7 @@ def speckle_filter(gpt_path, products, show_graph=True):
     parameters = get_operator_default_parameters(operator)
     node_id_0 = 'Read-0'
     source_node_id = ''
-    parameters['file'] = '{}.dim'.format(products.identifier.values[0])
+    parameters['file'] = os.path.join(working_dir,'{}.dim'.format(products.identifier.values[0]))
     
     mygraph.add_node(node_id_0,
                      operator, 
@@ -310,7 +303,7 @@ def speckle_filter(gpt_path, products, show_graph=True):
     parameters = get_operator_default_parameters(operator)
     node_id_1 = 'Read-1'
     source_node_id = ''
-    parameters['file'] = '{}.dim'.format(products.identifier.values[1])
+    parameters['file'] = os.path.join(working_dir,'{}.dim'.format(products.identifier.values[1]))
     
     mygraph.add_node(node_id_1,
                      operator, 
@@ -392,7 +385,7 @@ def speckle_filter(gpt_path, products, show_graph=True):
     mygraph.run()
 
 
-def create_stack(gpt_path, products, show_graph=True):
+def create_stack(gpt_path, products, working_dir='.', show_graph=True):
     
     mygraph = GraphProcessor(gpt_path)
     
@@ -445,10 +438,10 @@ def create_stack(gpt_path, products, show_graph=True):
 
     mygraph.run()
     
-def list_bands(product):
+def list_bands(product, working_dir='.'):
     
     reader = ProductIO.getProductReader('BEAM-DIMAP')
-    product = reader.readProductNodes(product, None)
+    product = reader.readProductNodes(os.path.join(working_dir,product), None)
 
     return list(product.getBandNames())
 

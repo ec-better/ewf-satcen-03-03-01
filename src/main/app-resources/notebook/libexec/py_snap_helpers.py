@@ -1,3 +1,5 @@
+#!/opt/anaconda/envs/env_ewf_satcen_03_03_01/bin/python
+
 import lxml.etree as etree
 import subprocess
 import tempfile
@@ -202,7 +204,7 @@ class GraphProcessor():
         logging.info('Processing the graph')
         
         fd, path = tempfile.mkstemp()
-        print(path)
+        
         rc = None
         
         try:
