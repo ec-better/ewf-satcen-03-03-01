@@ -20,6 +20,8 @@ gdal.UseExceptions()
 #os.environ['OTB_APPLICATION_PATH'] = '/opt/OTB/lib/otb/applications'
 #os.environ['LD_LIBRARY_PATH'] = '/opt/OTB/lib'
 #os.environ['ITK_AUTOLOAD_PATH'] = '/opt/OTB/lib/otb/applications'
+os.environ['PREFIX'] = '/opt/anaconda/envs/env_ewf_satcen_03_03_01/'
+sys.path.append(os.path.join(os.environ['PREFIX'], 'bin'))
 
 os.environ['_JAVA_OPTIONS'] = '-Xms24g -Xmx24g'
 
