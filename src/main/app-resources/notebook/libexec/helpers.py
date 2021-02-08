@@ -6,6 +6,7 @@ import gdal
 import geopandas as gp
 import os
 import pandas as pd
+import numpy as np
 
 
 from shapely.geometry import box
@@ -20,6 +21,8 @@ gdal.UseExceptions()
 #os.environ['OTB_APPLICATION_PATH'] = '/opt/OTB/lib/otb/applications'
 #os.environ['LD_LIBRARY_PATH'] = '/opt/OTB/lib'
 #os.environ['ITK_AUTOLOAD_PATH'] = '/opt/OTB/lib/otb/applications'
+os.environ['PREFIX'] = '/opt/anaconda/envs/env_ewf_satcen_03_03_01/'
+sys.path.append(os.path.join(os.environ['PREFIX'], 'bin'))
 
 os.environ['_JAVA_OPTIONS'] = '-Xms24g -Xmx24g'
 
@@ -654,3 +657,41 @@ def create_rbb(in_rgb, out_rbb):
     gdal.Translate(out_rbb, 
                    ds, 
                    options=translate_options)
+    
+    
+def write_tif(layer, output_tif, width, height, input_geotransform, input_georef):
+
+    driver = gdal.GetDriverByName('GTiff')
+
+    ds = driver.Create(output_tif, 
+                       width, 
+                       height, 
+                       1, 
+                       gdal.GDT_UInt16) 
+        
+    ds.SetGeoTransform(input_geotransform)
+    ds.SetProjection(input_georef)
+    ds.GetRasterBand(1).WriteArray(layer)
+        
+    ds.FlushCache()
+    ds = None
+
+    
+def create_mask_2(input_tif, output_tif):
+    
+    ds = gdal.Open(input_tif, gdal.OF_READONLY)
+    input_geotransform = ds.GetGeoTransform()
+    input_georef = ds.GetProjectionRef()
+    
+    w = ds.GetRasterBand(1).XSize
+    h = ds.GetRasterBand(1).YSize
+    band1 = ds.GetRasterBand(1).ReadAsArray(0,0,w,h)
+    band2 = ds.GetRasterBand(2).ReadAsArray(0,0,w,h)
+    band3 = ds.GetRasterBand(3).ReadAsArray(0,0,w,h)
+
+    out = np.zeros((h, w))
+    out[(np.where((band1==255) & (band2==0) & band3==0))] = 1
+    
+    ds = None
+    
+    write_tif(out, output_tif, w, h, input_geotransform, input_georef)
